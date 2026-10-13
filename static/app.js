@@ -1663,6 +1663,19 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---- marquee selection: drag across empty space to box-select cards ----
+/** True when a press landed on the element's own scrollbar rather than its
+ *  content. The bar fills the strip between the client box and the border box,
+ *  so any point past clientWidth/clientHeight is on it — not a card, not empty
+ *  space. Without this guard a scrollbar drag reads as "press on empty space",
+ *  starts a marquee, and the edge auto-scroll then fights the native scrollbar,
+ *  yanking the list around while the user is only trying to scroll it. */
+function onScrollbar(el, ev) {
+  const r = el.getBoundingClientRect();
+  const x = ev.clientX - r.left - el.clientLeft;
+  const y = ev.clientY - r.top - el.clientTop;
+  return x >= el.clientWidth || y >= el.clientHeight;
+}
+
 function setupMarquee() {
   const host = $("content");
   let box = null, base = null, startX = 0, startY = 0;
@@ -1746,6 +1759,10 @@ function setupMarquee() {
     // Done before any early return so a press on a card clears it too.
     rMoved = false;
     if (ev.button !== 0 && ev.button !== 2) return;
+    // A scrollbar drag belongs to the browser. Treating it as a press on empty
+    // space would start a marquee, and the edge auto-scroll would then yank the
+    // list out from under the pointer instead of letting it scroll normally.
+    if (onScrollbar(host, ev)) return;
     if (ev.target.closest("[data-gid]")) return;
     if (ev.target.closest("button, input, a, select, textarea")) return;
     if (ev.button === 2) {
@@ -1769,7 +1786,7 @@ function setupMarquee() {
   // left to onUp above; this only catches the ones we never saw a mousedown for
   // (menu key, Shift+F10) and suppresses the native menu everywhere else.
   host.addEventListener("contextmenu", (ev) => {
-    if (ev.target.closest("[data-gid]")) return;
+    if (ev.target.closest("[data-gid]") || onScrollbar(host, ev)) return;
     ev.preventDefault();
     if (rBtn || rMoved) return;
     // Some platforms fire contextmenu *after* mouseup: onUp already opened the
