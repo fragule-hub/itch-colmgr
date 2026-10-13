@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>itch 收藏夹管理器</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ============ 设置页（首启） ============ -->
+<div id="setup" class="hidden">
+  <div class="card">
+    <p class="eyebrow" data-i18n="setup.eyebrow">itch.io 收藏夹</p>
+    <h1 data-i18n="setup.h1">先把游戏库接过来</h1>
+    <p class="lead" data-i18n="setup.lead">整理都发生在这台电脑上。只有你稍后点右下角、再确认写入，itch 上的收藏夹才会变。游戏本身不会被删除。</p>
+
+    <label for="apiKey">API Key</label>
+    <input type="password" id="apiKey" data-i18n-ph="setup.apiKey.ph" placeholder="在 itch.io → 设置 → API keys 里生成" autocomplete="off">
+    <p class="hint" data-i18n="setup.apiKey.hint">只保存在本机。已经保存过的话，留空就继续用原来的。</p>
+
+    <label for="proxy" data-i18n="setup.proxy.label">网络代理</label>
+    <input type="text" id="proxy" placeholder="http://127.0.0.1:7890">
+    <p class="hint" data-i18n="setup.proxy.hint">国内访问 itch 一般要填本地代理端口。留空则直接连接。</p>
+
+    <div class="setup-actions">
+      <button id="btnSaveSetup" class="primary" data-i18n="setup.connect">连接并同步</button>
+      <button id="btnDemo" data-i18n="setup.demo">先用演示数据看看</button>
+      <button id="btnSetupBack" class="hidden" data-i18n="setup.back">返回游戏库</button>
+      <button id="btnLangSetup" data-lang-toggle type="button" data-i18n-title="side.langTitle" title="切换界面语言">English</button>
+    </div>
+    <div id="setupMsg"></div>
+
+    <details class="advanced">
+      <summary data-i18n="setup.advancedSummary">连不上、要检查权限，或要配 AI 时再打开</summary>
+      <div class="row">
+        <button id="btnTestRead" type="button" data-i18n="setup.testRead">测试能否读取</button>
+        <button id="btnTestWrite" type="button" data-i18n="setup.testWrite">检查写入权限</button>
+        <button id="btnSync" class="hidden" type="button" data-i18n="setup.syncSnapshot">同步快照</button>
+      </div>
+      <p class="hint" data-i18n="setup.testWriteHint">检查写入权限会临时建一个叫 <code>_colmgr_test</code> 的收藏夹，建完就删掉。</p>
+
+      <label for="rate" data-i18n="setup.rate.label">写入速度（每秒最多几次请求）</label>
+      <input type="number" id="rate" min="0.2" max="5" step="0.1" style="width:120px;">
+
+      <div class="row" style="margin-top:14px;">
+        <button id="btnHome2" type="button" data-i18n="setup.exportCsv">导出当前游戏库 CSV</button>
+      </div>
+      <p class="hint" data-i18n="setup.exportHint">导出的是已经同步下来的游戏库，不包括还没写入 itch 的修改。</p>
+    </details>
+  </div>
+</div>
+
+<!-- ============ 主界面 ============ -->
+<div id="layout" class="hidden">
+  <div id="sidebar">
+    <input type="text" class="search" id="search" data-i18n-ph="side.search.ph" placeholder="搜标题或作者">
+    <div class="side-item" data-view="home" data-i18n="side.home">主页</div>
+    <div class="side-item" data-view="all" data-i18n="side.all">全部游戏</div>
+    <div class="side-item" data-view="unassigned" data-i18n="side.unassigned">未分类</div>
+    <div class="side-group"><span data-i18n="side.colGroup">收藏夹</span><span class="plus" id="btnNewCol" data-i18n-title="side.newColTitle" title="新建收藏夹">＋</span></div>
+    <div id="colList"></div>
+    <div class="side-foot">
+      <button id="btnSettings" data-i18n="side.settings">设置</button>
+      <button id="btnLang" data-lang-toggle type="button" data-i18n-title="side.langTitle" title="切换界面语言">English</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="toolbar">
+      <div class="title-block">
+        <h2 id="viewTitle">主页</h2>
+        <span class="muted" id="syncInfo"></span>
+      </div>
+      <span class="sel-info hidden" id="selInfo"></span>
+      <span class="spacer"></span>
+      <button id="btnBackHome" class="hidden" type="button" data-i18n="toolbar.backHome" data-i18n-title="toolbar.backHome.title" title="返回主页（Esc）">← 主页</button>
+      <span id="homeSep" class="hidden tb-sep"></span>
+      <div id="viewModes" class="seg">
+        <button data-mode="grid" class="active" type="button" data-i18n="toolbar.grid">网格</button>
+        <button data-mode="list" type="button" data-i18n="toolbar.list">列表</button>
+      </div>
+      <button id="btnSelAll" class="hidden" type="button" data-i18n="toolbar.selAll">全选</button>
+      <button id="btnSelInvert" class="hidden" type="button" data-i18n="toolbar.selInvert">反选</button>
+      <button id="btnSelClear" class="hidden" type="button" data-i18n="toolbar.selClear" data-i18n-title="toolbar.selClear.title" title="取消全部选择">取消</button>
+      <span id="selSep" class="hidden tb-sep"></span>
+      <button id="btnBatchAdd" class="hidden primary" type="button" data-i18n="act.add">添加到…</button>
+      <button id="btnBatchMove" class="hidden" type="button" data-i18n="act.move">移入…</button>
+      <button id="btnBatchRemove" class="hidden" type="button" data-i18n="toolbar.batchRemove">移出收藏夹</button>
+      <button id="btnBatchRemoveAll" class="hidden" type="button" data-i18n="toolbar.batchRemoveAll" data-i18n-title="toolbar.batchRemoveAll.title" title="从所有收藏夹移出，回到未分类">移出全部收藏夹</button>
+      <button id="btnResync" type="button" data-i18n="toolbar.resync">刷新游戏库</button>
+    </div>
+    <div id="demoBanner" class="hidden" data-i18n="demo.banner">正在看演示数据。这里的修改不会写到你的 itch 账号。要整理自己的库，请到设置里连接。</div>
+    <div id="hintbar">
+      <span class="hint" data-i18n="hint.click"><kbd>单击</kbd>选中这一个</span>
+      <span class="hint" data-i18n="hint.ctrlClick"><kbd>Ctrl</kbd>+单击 加选／取消</span>
+      <span class="hint" data-i18n="hint.shiftClick"><kbd>Shift</kbd>+单击 连选一段</span>
+      <span class="hint" data-i18n="hint.marquee"><kbd>空白拖拽</kbd>框选，左右键均可（<kbd>Ctrl</kbd> 叠加）</span>
+      <span class="hint" data-i18n="hint.dblclick"><kbd>双击</kbd>打开 itch 素材页</span>
+      <span class="hint" data-i18n="hint.rightClick"><kbd>右键单击</kbd>素材或空白＝菜单</span>
+      <span class="hint" data-i18n="hint.dragToCol"><kbd>拖到收藏夹</kbd>移入（<kbd>Ctrl</kbd> 拖＝添加）</span>
+      <span class="hint" data-i18n="hint.dragToOrder"><kbd>在收藏夹里拖到卡片之间</kbd>调整顺序</span>
+      <span class="hint" data-i18n="hint.dragToBin"><kbd>拖到右下角红框</kbd>移出它所在的那个收藏夹</span>
+      <span class="hint muted" data-i18n="hint.localNote">改动先留本机，点右下角确认后才写入</span>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- Drag an asset here to pull it out of the collection it came from. The label
+     and the target are filled in per drag (see prepareBin); the bin only shows
+     up when the drag actually has a single collection to point at. Nothing on
+     itch is ever deleted, so the wording stays 移出, not 删除. -->
+<div id="dropRemove" class="hidden" data-i18n-title="bin.title" title="把素材从它所在的收藏夹移出（itch 上不会删除）">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13h9l1-13M10 10v6.5M14 10v6.5"/>
+  </svg>
+  <span class="lbl" data-i18n="bin.verb">移出</span>
+</div>
+
+<button id="pill" class="hidden">
+  <span id="pillCount">0 项修改还没写入 itch</span>
+  <span class="sub" id="pillSub"></span>
+</button>
+
+<div class="overlay hidden" id="confirmOverlay">
+  <div class="panel" style="width:min(860px,94vw);">
+    <div class="panel-head">
+      <h2 data-i18n="confirm.title">写入 itch 之前确认一下</h2>
+      <span class="muted" id="confirmSummary" style="margin-left:12px;"></span>
+      <span class="x" data-close="confirmOverlay">×</span>
+    </div>
+    <div class="panel-body" id="confirmBody"></div>
+    <div class="panel-foot">
+      <span class="spacer"></span>
+      <button id="btnClearPlan" class="danger" type="button" data-i18n="confirm.clearAll" data-i18n-title="confirm.clearAll.title" title="丢弃全部还没写入 itch 的改动">全部放弃</button>
+      <button id="btnConfirmCancel" data-close="confirmOverlay" type="button" data-i18n="confirm.cancel">取消</button>
+      <button id="btnConfirmExec" class="primary" type="button" data-i18n="confirm.exec">确认写入</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="execOverlay">
+  <div class="panel" style="width:min(720px,94vw);">
+    <div class="panel-head"><h2 data-i18n="exec.title">正在写入 itch</h2><span class="x" data-close="execOverlay" id="execClose">×</span></div>
+    <div class="panel-body">
+      <div class="progress"><div class="fill" id="execFill"></div></div>
+      <div class="muted" id="execStat" style="margin-bottom:8px;"></div>
+      <div id="execlog"></div>
+    </div>
+    <div class="panel-foot">
+      <button id="btnExecCancel" type="button" data-i18n="exec.cancel">停止</button>
+      <span class="spacer"></span>
+      <button id="btnRollback" class="hidden" type="button" data-i18n="exec.rollback">撤销刚才的写入</button>
+      <button id="btnReloadAfter" class="primary hidden" type="button" data-i18n="exec.reload" data-i18n-title="exec.reload.title" title="重新加载页面，得到干净的选择状态和视图（游戏库在写入完成时已经同步过）">刷新页面</button>
+    </div>
+  </div>
+</div>
+
+<div id="ctxmenu" class="hidden"></div>
+
+<script src="/static/i18n.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

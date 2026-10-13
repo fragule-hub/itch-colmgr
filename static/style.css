@@ -1,0 +1,362 @@
+:root {
+  --bg: #f4f4f2;
+  --surface: #ffffff;
+  --surface2: #ebebe7;
+  --border: rgba(0,0,0,.15);
+  --border2: rgba(0,0,0,.3);
+  --text: #1e1e1c;
+  --muted: #6f6e6a;
+  --accent: #185fa5;
+  --accent-bg: #e6f1fb;
+  --accent-text: #0c447c;
+  --green-bg: #eaf3de;
+  --green: #3b6d11;
+  --red-bg: #fcebeb;
+  --red: #a32d2d;
+  --amber-bg: #faeeda;
+  --amber: #854f0b;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-size: 13px; color: var(--text); background: var(--bg);
+  overflow: hidden;
+}
+button {
+  font: inherit; padding: 5px 12px; border-radius: var(--radius);
+  border: 0.5px solid var(--border2); background: var(--surface);
+  cursor: pointer; color: var(--text);
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover { opacity: .9; color: #fff; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+input[type=text], input[type=password], input[type=number], textarea, select {
+  font: inherit; padding: 6px 10px; border-radius: var(--radius);
+  border: 0.5px solid var(--border2); background: var(--surface); color: var(--text);
+}
+input:focus, textarea:focus { outline: 1.5px solid var(--accent); }
+h1 { font-size: 15px; font-weight: 500; }
+h2 { font-size: 14px; font-weight: 500; }
+h3 { font-size: 13px; font-weight: 500; }
+.muted { color: var(--muted); }
+.hidden { display: none !important; }
+
+/* ---------- layout ---------- */
+#layout { display: flex; height: 100vh; }
+#sidebar {
+  width: 252px; flex-shrink: 0; background: var(--surface2);
+  border-right: 0.5px solid var(--border); padding: 12px 10px;
+  display: flex; flex-direction: column; gap: 2px; overflow-y: auto;
+}
+#sidebar .search { width: 100%; margin-bottom: 8px; }
+.side-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 9px; border-radius: var(--radius); color: var(--muted);
+  cursor: pointer; user-select: none; position: relative;
+}
+.side-item:hover { background: rgba(0,0,0,.06); }
+.side-item.active { background: var(--accent-bg); color: var(--accent-text); font-weight: 500; }
+.side-item .badge { margin-left: auto; font-size: 11px; color: var(--muted); }
+/* Drop feedback: plain drag = 移入 (blue), Ctrl+drag = 添加 (green) */
+.side-item.drop-target { outline: 1.5px dashed var(--accent); background: var(--accent-bg); color: var(--accent-text); }
+.side-item.drop-target.copy { outline-color: var(--green); background: var(--green-bg); color: var(--green); }
+/* Reorder feedback: the dragged row fades, a line shows where it would land. */
+.side-item.sorting { opacity: .4; }
+.side-item.sort-before::before, .side-item.sort-after::after {
+  content: ""; position: absolute; left: 6px; right: 6px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+}
+.side-item.sort-before::before { top: -2px; }
+.side-item.sort-after::after { bottom: -2px; }
+.side-group { font-size: 11px; letter-spacing: .5px; color: var(--muted); margin: 10px 4px 4px; display: flex; align-items: center; justify-content: space-between; }
+.side-group .plus { cursor: pointer; padding: 0 5px; border-radius: 4px; }
+.side-group .plus:hover { background: rgba(0,0,0,.1); color: var(--text); }
+.side-foot { margin-top: auto; padding-top: 12px; border-top: 0.5px solid var(--border); }
+.side-foot button { width: 100%; }
+
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 16px; border-bottom: 0.5px solid var(--border); background: var(--surface);
+}
+.title-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#toolbar h2 { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#toolbar .sel-info { font-weight: 500; color: var(--accent-text); background: var(--accent-bg); border-radius: 99px; padding: 3px 10px; }
+.spacer { flex: 1; }
+.seg { display: flex; background: var(--surface2); border-radius: 8px; padding: 2px; }
+.seg button { border: none; background: transparent; padding: 4px 10px; }
+.seg button.active { background: var(--surface); color: var(--accent-text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+#demoBanner { padding: 8px 16px; background: var(--amber-bg); color: var(--amber); font-size: 12px; }
+/* One single line, always. On a narrow window the row scrolls sideways instead
+   of growing taller — the hint strip must never eat vertical space from the
+   library. Scrollbar is hidden so it reads as one calm bar. */
+#hintbar {
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 0 16px;
+  padding: 5px 16px; font-size: 11.5px; line-height: 1.6; color: var(--muted);
+  background: var(--surface); border-bottom: 0.5px solid var(--border);
+  overflow-x: auto; overflow-y: hidden; white-space: nowrap;
+  scrollbar-width: none; -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+#hintbar::-webkit-scrollbar { height: 0; }
+/* Only when the row actually overflows: tell the user it can be dragged. */
+#hintbar.can-scroll { cursor: grab; }
+#hintbar.can-scroll:active { cursor: grabbing; }
+#hintbar .hint { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+#hintbar kbd {
+  font: inherit; font-size: 10.5px; line-height: 1.4; padding: 0 4px; border-radius: 4px;
+  border: 0.5px solid var(--border2); border-bottom-width: 2px;
+  background: var(--surface2); color: var(--text); white-space: nowrap;
+}
+.empty { max-width: 420px; margin: 64px auto; text-align: center; color: var(--muted); line-height: 1.6; }
+.empty-title { color: var(--text); font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+#content { flex: 1; overflow-y: auto; padding: 16px; }
+
+/* shelves (主页) */
+.shelf { margin-bottom: 22px; }
+.shelf .shelf-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.shelf .shelf-head .muted { font-size: 12px; }
+.shelf-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.shelf-row .gcard { width: 150px; flex-shrink: 0; }
+/* a shelf doubles as a drop target on 主页 */
+.shelf.drop-target { outline: 1.5px dashed var(--accent); outline-offset: 4px; border-radius: var(--radius); }
+.shelf.drop-target .shelf-head h3 { color: var(--accent-text); }
+.shelf.drop-target.copy { outline-color: var(--green); }
+.shelf.drop-target.copy .shelf-head h3 { color: var(--green); }
+
+/* grid / list cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.gcard {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; cursor: grab; position: relative;
+}
+.gcard:hover { border-color: var(--border2); }
+.gcard.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Same asset shown again in another collection: marked, but visibly not the
+   card the user picked. Solid = the actual selection, dashed = another copy. */
+.gcard.linked { outline: 1.5px dashed var(--muted); outline-offset: -2px; }
+.gcard.linked .check { display: flex; background: rgba(0,0,0,.45); border-color: rgba(255,255,255,.7); font-size: 11px; }
+.gcard.dragging { opacity: .45; }
+/* Insertion point for a reorder drag inside one collection. Inset shadows, not
+   pseudo-elements: .gcard clips its overflow, so an outside line would vanish. */
+.gcard.sort-before { box-shadow: inset 3px 0 0 var(--accent); }
+.gcard.sort-after { box-shadow: inset -3px 0 0 var(--accent); }
+.list-row.sort-before { box-shadow: inset 0 3px 0 var(--accent); }
+.list-row.sort-after { box-shadow: inset 0 -3px 0 var(--accent); }
+.gcard .cover { height: 112px; background: var(--accent-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.gcard .cover img { width: 100%; height: 100%; object-fit: cover; }
+.gcard .cover .ph { font-size: 20px; font-weight: 500; color: var(--accent-text); opacity: .6; }
+.gcard .meta { padding: 8px 10px 10px; }
+.gcard .g-title { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gcard .g-author { font-size: 11px; color: var(--muted); }
+.gcard .g-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+.tag { font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--surface2); color: var(--muted); }
+.tag.new { background: var(--green-bg); color: var(--green); }
+.gcard .check {
+  position: absolute; top: 6px; right: 6px; width: 18px; height: 18px;
+  border-radius: 5px; border: 1px solid #fff; background: rgba(0,0,0,.25);
+  display: none; align-items: center; justify-content: center; color: #fff; font-size: 12px;
+}
+.gcard:hover .check, .gcard.selected .check { display: flex; }
+.gcard.selected .check { background: var(--accent); border-color: #fff; }
+
+.list-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--radius); padding: 8px 12px; margin-bottom: 6px; cursor: grab;
+}
+.list-row.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
+.list-row.linked { outline: 1.5px dashed var(--muted); outline-offset: -2px; }
+.list-row.dragging { opacity: .45; }
+.list-row .g-title { font-weight: 500; min-width: 180px; }
+.list-row .g-desc { flex: 1; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* context menu */
+#ctxmenu {
+  position: absolute; z-index: 1000; min-width: 190px;
+  background: var(--surface); border: 0.5px solid var(--border2);
+  border-radius: var(--radius); box-shadow: 0 4px 18px rgba(0,0,0,.15); padding: 4px;
+}
+#ctxmenu .mi { position: relative; padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+#ctxmenu .mi:hover { background: var(--accent-bg); color: var(--accent-text); }
+#ctxmenu .mi.danger:hover { background: var(--red-bg); color: var(--red); }
+#ctxmenu .sep { height: 0.5px; background: var(--border); margin: 4px 6px; }
+#ctxmenu .submenu {
+  position: absolute; left: 100%; top: -4px; min-width: 190px; max-width: 280px; display: none; z-index: 1;
+  background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius);
+  box-shadow: 0 4px 18px rgba(0,0,0,.15); padding: 4px;
+  /* A long collection list must never run past the window edge: cap the height
+     and let it scroll. JS refines the cap and may shift it upward to fit. */
+  max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain;
+}
+#ctxmenu.flip .submenu { left: auto; right: 100%; }
+#ctxmenu .has-sub:hover .submenu { display: block; }
+#ctxmenu .submenu .mi { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* pending pill */
+#pill {
+  position: fixed; right: 20px; bottom: 20px; z-index: 900;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 99px; padding: 11px 18px; font-size: 13px; font-weight: 500;
+  box-shadow: 0 4px 14px rgba(24,95,165,.4); cursor: pointer;
+}
+#pill:hover { opacity: .92; }
+#pill .sub { font-weight: 400; opacity: .85; font-size: 12px; }
+
+/* Drag an asset onto this to pull it out of every collection. It only exists
+   during a drag, and it lives in the corner the pending pill normally owns —
+   the pill steps aside for the duration so the two never fight for the spot.
+   The corner sits inside the list's bottom auto-scroll band, so while the bin
+   is visible that patch of the band belongs to it (overBin in app.js). */
+#dropRemove {
+  position: fixed; right: 20px; bottom: 20px; z-index: 1100;
+  width: 138px; height: 108px; padding: 0 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+  background: var(--red); color: #fff; text-align: center;
+  border: 2px dashed rgba(255,255,255,.72); border-radius: var(--radius-lg);
+  box-shadow: 0 6px 20px rgba(163,45,45,.42);
+  font-size: 12px; font-weight: 500; line-height: 1.35;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+#dropRemove svg {
+  width: 32px; height: 32px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+/* Collection names vary in length: clamp to two lines instead of letting a long
+   one blow the box up. */
+#dropRemove .lbl {
+  max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+#dropRemove.drop-target {
+  transform: scale(1.08); filter: brightness(1.15);
+  border-style: solid; box-shadow: 0 10px 28px rgba(163,45,45,.6);
+}
+
+/* drawers / overlays */
+.overlay {
+  position: fixed; inset: 0; z-index: 950; background: rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center;
+}
+.panel {
+  background: var(--surface); border-radius: var(--radius-lg);
+  width: min(760px, 92vw); max-height: 86vh; display: flex; flex-direction: column;
+  border: 0.5px solid var(--border);
+}
+.panel-head { display: flex; align-items: center; padding: 14px 18px; border-bottom: 0.5px solid var(--border); }
+.panel-head .x { margin-left: auto; cursor: pointer; color: var(--muted); font-size: 18px; padding: 0 4px; }
+.panel-body { padding: 16px 18px; overflow-y: auto; }
+.panel-foot { padding: 12px 18px; border-top: 0.5px solid var(--border); display: flex; gap: 8px; align-items: center; }
+
+/* setup screen */
+#setup { position: fixed; inset: 0; z-index: 990; background: var(--bg); display: flex; align-items: center; justify-content: center; overflow-y: auto; }
+#setup .card { width: min(520px, 94vw); background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 28px 32px; margin: 24px 0; }
+#setup h1 { font-size: 22px; font-weight: 600; }
+#setup .eyebrow { font-size: 12px; letter-spacing: .06em; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+#setup .lead { font-size: 14px; line-height: 1.65; margin-top: 8px; }
+#setup label { display: block; margin: 14px 0 6px; font-weight: 500; }
+.setup-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.setup-actions .primary { padding: 8px 16px; }
+details.advanced { margin-top: 18px; border-top: 0.5px solid var(--border); padding-top: 8px; }
+details.advanced summary { cursor: pointer; color: var(--muted); padding: 6px 0 10px; }
+/* destructive button — solid red so it never reads as another neutral action */
+button.danger { background: var(--red); border-color: var(--red); color: #fff; }
+button.danger:hover { background: var(--red); border-color: var(--red); color: #fff; opacity: .9; }
+.checkline { display: flex; align-items: center; gap: 6px; }
+
+/* pre-write risk banner: orphaned assets / collection deletion */
+.riskbox {
+  border: 1px solid var(--amber); background: var(--amber-bg);
+  border-radius: var(--radius); padding: 10px 12px; margin-bottom: 14px;
+}
+.riskbox-head { font-weight: 600; color: var(--amber); margin-bottom: 6px; }
+.riskbox-line { margin: 6px 0; line-height: 1.55; }
+.riskbox-note { margin: 4px 0 6px; color: var(--muted); line-height: 1.55; }
+.riskbox-list {
+  margin: 4px 0 6px; padding-left: 18px; line-height: 1.65;
+  max-height: 168px; overflow-y: auto; overscroll-behavior: contain;
+}
+.riskbox .checkline { margin-top: 8px; font-weight: 500; }
+#setup .row { display: flex; gap: 8px; align-items: center; }
+#setup input { width: 100%; }
+#setup .hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: var(--radius); font-size: 12px; }
+.msg.ok { background: var(--green-bg); color: var(--green); }
+.msg.err { background: var(--red-bg); color: var(--red); }
+
+/* confirm drawer groups */
+.diff-group { border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; }
+.diff-group .dg-head { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--surface2); font-weight: 500; }
+.diff-item { display: flex; align-items: center; gap: 9px; padding: 6px 14px; border-top: 0.5px solid var(--border); }
+.diff-item input { width: auto; }
+.diff-item .op { font-weight: 500; min-width: 60px; }
+.diff-item .op.add { color: var(--green); }
+.diff-item .op.remove { color: var(--red); }
+.diff-item .op.order { color: var(--accent); }
+
+/* exec progress */
+#execlog { font-family: Consolas, monospace; font-size: 12px; background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; height: 220px; overflow-y: auto; white-space: pre-wrap; }
+.progress { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin: 10px 0; }
+.progress .fill { height: 100%; background: var(--accent); width: 0%; transition: width .3s; }
+
+/* toolbar separators */
+.tb-sep { width: 0.5px; height: 20px; background: var(--border2); }
+#toolbar > button { padding: 5px 10px; white-space: nowrap; }
+
+/* marquee selection */
+#marquee {
+  position: fixed; z-index: 800; pointer-events: none;
+  border: 1px solid var(--accent); background: rgba(24,95,165,.10); border-radius: 3px;
+}
+
+/* badge that trails the cursor while assets are being dragged */
+#dragBadge {
+  position: fixed; left: 0; top: 0; z-index: 1100; pointer-events: none;
+  transform: translate(16px, 14px);
+  background: var(--accent); color: #fff; font-size: 12px; font-weight: 500;
+  padding: 5px 11px; border-radius: 99px; white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(0,0,0,.25);
+}
+#dragBadge.copy { background: var(--green); }
+
+/* Drag image for a multi-selection: a small stack of the picked covers, handed
+   to the browser via setDragImage so several assets visibly travel together.
+   Parked off-screen — the browser snapshots it, the user never sees it here. */
+#dragGhost {
+  position: fixed; left: -9999px; top: 0; width: 64px; height: 64px;
+  pointer-events: none;
+}
+#dragGhost .dg-card {
+  position: absolute; width: 44px; height: 44px; border-radius: 7px; overflow: hidden;
+  background: var(--surface); border: 1px solid #fff;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center;
+}
+#dragGhost .dg-card img { width: 100%; height: 100%; object-fit: cover; }
+#dragGhost .dg-card .ph { font-size: 16px; font-weight: 600; color: var(--accent-text); }
+#dragGhost .dg-count {
+  position: absolute; left: 27px; top: 27px; z-index: 9;
+  background: var(--accent); color: #fff; font-size: 11px; font-weight: 600;
+  line-height: 1.5; padding: 0 7px; border-radius: 99px;
+  border: 1.5px solid #fff; white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+/* context menu: label + hint line */
+#ctxmenu .mi .lbl { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#ctxmenu .mi small { font-size: 11px; color: var(--muted); font-weight: 400; }
+#ctxmenu .mi:hover small { color: var(--accent-text); }
+#ctxmenu .mi.disabled { opacity: .4; cursor: default; }
+#ctxmenu .mi.disabled:hover { background: none; color: var(--text); }
+
+/* toast action button */
+#toast button {
+  margin-left: 4px; padding: 3px 10px; font-size: 12px;
+  border-color: var(--accent); color: var(--accent); background: transparent;
+}
+#toast button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }

@@ -1,0 +1,20 @@
+# 本地配置（含 API Key，绝不入库）
+config.local.json
+
+# 运行期数据：快照、待写入队列、执行断点、回滚计划，全部是账号内容，不入库
+data/
+
+# 虚拟环境与缓存
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.tmp
+
+# 本地 AI agent 的工作记录（开发过程，不随项目发布）
+.workbuddy/
+
+# 打包产物与运行日志
+build/
+dist/
+*.log
