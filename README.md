@@ -28,7 +28,7 @@ itch 的收藏夹只能一个个游戏手动添加 / 移除，库一大就没法
 
 - **全本地暂存**：所有操作（含拖拽）都不直接写 itch，累积到右下角气泡，确认后批量写入
 - **两种排序**：侧栏收藏夹顺序只存本机；收藏夹内素材顺序会随确认写回 itch
-- **人工闸门**：写入前逐条核对，零归属素材 / 删收藏夹有红色警告，写入后可撤销
+- **人工闸门**：写入前逐条核对，不属于任何收藏夹的素材 / 删收藏夹有红色警告，写入后可撤销
 - **安全**：限速写入、失败重试、断点续跑、演示模式（无 key 也能体验）
 - **中英双语**：侧栏底部一键切换界面与写入日志，偏好存浏览器本机
 - 网格 / 列表视图、主页 Shelf、Ctrl / Shift 多选、右键菜单、拖拽归类
@@ -59,16 +59,22 @@ python main.py                    # 自动打开浏览器
 - 在空白处按住拖动＝框选（左右键均可，`Ctrl` 叠加到已有选择）
 - 工具栏：全选 / 反选 / 取消；快捷键 `Ctrl+A` 全选当前视图，`Esc` 返回主页
 
-**拖拽有四个落点**
+**拖拽素材有四个落点**
+
+拖拽的对象是素材，把素材拖到：
 
 | 拖到 | 作用 |
 |---|---|
 | 侧栏收藏夹 | 移入（按住 `Ctrl` ＝添加到多个收藏夹） |
 | 右下角红框 | 从它所在的那个收藏夹移出 |
 | 收藏夹视图里两张卡片之间 | 调整素材顺序（会写回 itch） |
-| 空白处 | 框选 |
+| 空白处 | 取消这次拖拽 |
 
-**排序**：侧栏收藏夹可上下拖动排序（仅本机偏好）；收藏夹内拖到卡片之间调整顺序。
+调整顺序只在**点进某个收藏夹后的收藏夹视图**里有效；在主页或「全部 / 未分类」里拖到卡片之间不会排序。
+
+> 「框选」是另一种手势：起点落在空白背景上按住拖动（见上面的「选择」）；拖素材松手在空白处只是取消这次拖拽，不会触发框选。
+
+**排序**：侧栏收藏夹可上下拖动排序，这只是本机偏好（itch 无对应接口，不会写入）。
 
 **右键菜单**：素材卡＝打开 itch / 添加到 / 移入 / 移出 / 从所有收藏夹移出；收藏夹＝打开 / 删除；空白处＝全选 / 反选 / 取消。
 
@@ -102,7 +108,7 @@ python scripts/build.py --console  # 保留控制台，便于看日志
 ### 注意
 
 - 默认限速 1 请求/秒，确认页可调；侧栏收藏夹顺序是本机偏好（itch 没有对应接口，不会写入）
-- **零归属素材会被工具遗忘**：itch 没有「读取全部素材」的端点，快照靠遍历收藏夹拼出。素材被移出所有收藏夹后就不在下一份快照里——itch 上不会被删除，但工具从此看不见它，写入前会有警告
+- **不属于任何收藏夹的素材，写入后会从工具中消失**：本地暂存期间，被移出收藏夹的素材会落在「未分类」；确认写入后，itch 上会按你的操作正确地把它们移出收藏夹，工具里也不再显示它们。写入前会有提醒
 - 收藏夹写端点属于官方客户端在用的半公开 API，个人 key 权限以「检查写入权限」的结果为准
 
 ### 许可
@@ -158,16 +164,22 @@ Without a key, click "Try the demo data first". If reads or writes fail, expand 
 - Press and drag on empty space to marquee-select (either mouse button; `Ctrl` adds to the current selection)
 - Toolbar: select all / invert / clear; shortcuts `Ctrl+A` selects everything in view, `Esc` returns Home
 
-**A drag has four drop targets**
+**Dragging an asset has four drop targets**
+
+What you drag is an asset. Drop it on:
 
 | Drop on | Effect |
 |---|---|
 | A sidebar collection | Move into it (hold `Ctrl` to add to several) |
 | The red bin at the bottom-right | Remove from the collection it came from |
 | Between two cards in a collection view | Reorder the assets (written back to itch) |
-| Empty space | Marquee-select |
+| Empty space | Cancel the drag |
 
-**Ordering**: sidebar collections can be dragged up and down (a local preference only); inside a collection, drag between two cards to reorder.
+Reordering only applies inside a **collection view** (after you click into a collection); dropping between cards on Home or under All games / Unsorted does nothing.
+
+> Marquee-select is a different gesture: it starts by pressing on the empty background (see Selecting above). Releasing an asset drag on empty space only cancels the drag.
+
+**Ordering**: sidebar collections can be dragged up and down, but that is a local preference only (itch has no endpoint for it, so it is never written).
 
 **Right-click menus**: on an asset = open on itch / add to / move to / remove from / remove from all collections; on a collection = open / delete; on empty space = select all / invert / clear.
 
@@ -201,7 +213,7 @@ Output: `dist/itch-colmgr.exe` or `dist/itch-colmgr/`; both share `itch_colmgr.s
 ### Notes
 
 - Writes are rate-limited to 1 request/second by default (adjustable on the review page); the sidebar order is a local preference (itch has no endpoint for it, so it is never written)
-- **Zero-membership assets fall out of view**: itch has no "list all my assets" endpoint — the snapshot is built by walking your collections. Once an asset is removed from every collection it is absent from the next snapshot: nothing is deleted on itch, but the tool can no longer see it, and you are warned before writing
+- **Assets that belong to no collection disappear from the tool once written**: while staged locally they show up under Unsorted; after you confirm the write, itch removes them from their collections exactly as you asked, and the tool stops showing them too. You are warned before writing
 - The collection write endpoints are the semi-public ones used by itch's own clients; whether your personal key may use them is what "Check write access" tells you
 
 ### License
