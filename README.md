@@ -59,20 +59,15 @@ python main.py                    # 自动打开浏览器
 - 在空白处按住拖动＝框选（左右键均可，`Ctrl` 叠加到已有选择）
 - 工具栏：全选 / 反选 / 取消；快捷键 `Ctrl+A` 全选当前视图，`Esc` 返回主页
 
-**拖拽素材有四个落点**
-
-拖拽的对象是素材，把素材拖到：
+**拖拽素材落点**
 
 | 拖到 | 作用 |
 |---|---|
 | 侧栏收藏夹 | 移入（按住 `Ctrl` ＝添加到多个收藏夹） |
 | 右下角红框 | 从它所在的那个收藏夹移出 |
-| 收藏夹视图里两张卡片之间 | 调整素材顺序（会写回 itch） |
 | 空白处 | 取消这次拖拽 |
 
-调整顺序只在**点进某个收藏夹后的收藏夹视图**里有效；在主页或「全部 / 未分类」里拖到卡片之间不会排序。
-
-> 「框选」是另一种手势：起点落在空白背景上按住拖动（见上面的「选择」）；拖素材松手在空白处只是取消这次拖拽，不会触发框选。
+**调整顺序**：仅在点进某个收藏夹后的收藏夹视图里有效——把素材拖到其他卡片之间调整顺序（会写回 itch）；在主页或「全部 / 未分类」里拖到卡片之间不会排序。
 
 **排序**：侧栏收藏夹可上下拖动排序，这只是本机偏好（itch 无对应接口，不会写入）。
 
@@ -80,7 +75,7 @@ python main.py                    # 自动打开浏览器
 
 **写入**：右下角气泡点开是确认页，按收藏夹分组列出 +N / −M，可逐条撤掉；确认后限速写入，有进度和日志、可中途停止；完成后可「撤销刚才的写入」。
 
-> 拖拽时鼠标滚轮不生效（原生拖拽把指针交给了浏览器）。把指针停到列表的上 / 下三分之一，列表就会持续滚动。
+> 拖拽时鼠标指针停到列表的上 / 下三分之一时，列表自动持续滚动。
 
 ### 打包成可执行文件
 
@@ -164,20 +159,15 @@ Without a key, click "Try the demo data first". If reads or writes fail, expand 
 - Press and drag on empty space to marquee-select (either mouse button; `Ctrl` adds to the current selection)
 - Toolbar: select all / invert / clear; shortcuts `Ctrl+A` selects everything in view, `Esc` returns Home
 
-**Dragging an asset has four drop targets**
-
-What you drag is an asset. Drop it on:
+**Asset drop targets**
 
 | Drop on | Effect |
 |---|---|
 | A sidebar collection | Move into it (hold `Ctrl` to add to several) |
 | The red bin at the bottom-right | Remove from the collection it came from |
-| Between two cards in a collection view | Reorder the assets (written back to itch) |
 | Empty space | Cancel the drag |
 
-Reordering only applies inside a **collection view** (after you click into a collection); dropping between cards on Home or under All games / Unsorted does nothing.
-
-> Marquee-select is a different gesture: it starts by pressing on the empty background (see Selecting above). Releasing an asset drag on empty space only cancels the drag.
+**Reordering**: only works inside a collection view (after you click into a collection) — drag an asset between other cards to reorder it (written back to itch); dropping between cards on Home or under All games / Unsorted does nothing.
 
 **Ordering**: sidebar collections can be dragged up and down, but that is a local preference only (itch has no endpoint for it, so it is never written).
 
@@ -185,7 +175,7 @@ Reordering only applies inside a **collection view** (after you click into a col
 
 **Writing**: clicking the bottom-right pill opens the review page, grouped per collection as +N / −M, with per-item removal. Confirm to write at a limited rate — with progress and a log, stoppable mid-run, and undoable afterwards.
 
-> The mouse wheel is inactive mid-drag (a native drag hands the pointer to the browser). Park the pointer on the top / bottom third of the list to keep it scrolling.
+> While dragging, park the pointer on the top / bottom third of the list and it keeps scrolling.
 
 ### Build a standalone executable
 
